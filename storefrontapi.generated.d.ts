@@ -1264,15 +1264,15 @@ interface GeneratedQueryTypes {
     return: FooterQuery;
     variables: FooterQueryVariables;
   };
-  '#graphql\n  query FeaturedCollections {\n    collections(first: 5, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        id\n        title\n        handle\n        image {\n          url\n          altText\n          width\n          height\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  query FeaturedCollections {\n    collections(first: 5, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        id\n        title\n        handle\n        image { url altText width height }\n      }\n    }\n  }\n': {
     return: FeaturedCollectionsQuery;
     variables: FeaturedCollectionsQueryVariables;
   };
-  '#graphql\n  query FeaturedProducts {\n    products(first: 8, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        id\n        title\n        handle\n        priceRange {\n          minVariantPrice {\n            amount\n            currencyCode\n          }\n        }\n        featuredImage {\n          url\n          altText\n          width\n          height\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  query FeaturedProducts {\n    products(first: 8, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        id\n        title\n        handle\n        priceRange {\n          minVariantPrice { amount currencyCode }\n        }\n        featuredImage { url altText width height }\n      }\n    }\n  }\n': {
     return: FeaturedProductsQuery;
     variables: FeaturedProductsQueryVariables;
   };
-  '#graphql\n  query FeaturedArticles {\n    articles(first: 3, sortKey: PUBLISHED_AT, reverse: true) {\n      nodes {\n        id\n        title\n        handle\n        publishedAt\n        image {\n          url\n          altText\n        }\n        blog {\n          handle\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  query FeaturedArticles {\n    articles(first: 3, sortKey: PUBLISHED_AT, reverse: true) {\n      nodes {\n        id\n        title\n        handle\n        publishedAt\n        image { url altText }\n        blog { handle }\n      }\n    }\n  }\n': {
     return: FeaturedArticlesQuery;
     variables: FeaturedArticlesQueryVariables;
   };
