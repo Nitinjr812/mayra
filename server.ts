@@ -1,6 +1,6 @@
 import * as serverBuild from 'virtual:react-router/server-build';
-import {createRequestHandler, storefrontRedirect} from '@shopify/hydrogen';
-import {createHydrogenRouterContext} from '~/lib/context';
+import { createRequestHandler, storefrontRedirect } from '@shopify/hydrogen';
+import { createHydrogenRouterContext } from '~/lib/context';
 
 /**
  * Export a fetch handler in module format.
@@ -50,10 +50,25 @@ export default {
         });
       }
 
+      // CSP headers
+      response.headers.set(
+        'Content-Security-Policy',
+        [
+          "default-src 'self' https://cdn.shopify.com https://shopify.com http://localhost:*",
+          "media-src 'self' https://mayrabygungun.com https://cdn.shopify.com",
+          "img-src 'self' data: https://mayrabygungun.com https://cdn.shopify.com https://shopify.com",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.shopify.com",
+          "font-src 'self' https://fonts.gstatic.com https://cdn.shopify.com",
+          "script-src 'self' 'unsafe-inline' https://cdn.shopify.com http://localhost:*",
+          "connect-src 'self' https://cdn.shopify.com https://shopify.com https://monorail-edge.shopifysvc.com http://localhost:* ws://localhost:*",
+        ].join('; ')
+      );
+
       return response;
+
     } catch (error) {
       console.error(error);
-      return new Response('An unexpected error occurred', {status: 500});
+      return new Response('An unexpected error occurred', { status: 500 });
     }
   },
 };

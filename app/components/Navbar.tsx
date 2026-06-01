@@ -1,7 +1,8 @@
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { Suspense, useState, useEffect, useRef } from "react";
 import { Await } from "react-router";
 import { useAside } from "~/components/Aside";
+
 
 // ─────────────────────────────────────────
 // Types
@@ -99,17 +100,12 @@ export function Navbar({ cart, isLoggedIn }: NavbarProps) {
 
     // Lock body scroll when mobile menu is open
     useEffect(() => {
-        if (mobileOpen) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
-        }
+        document.body.style.overflow = mobileOpen ? "hidden" : "";
         return () => { document.body.style.overflow = ""; };
     }, [mobileOpen]);
 
     const isHero = location.pathname === "/";
 
-    // Nav background logic
     const navBg =
         scrolled || !isHero || mobileOpen
             ? "bg-white/97 backdrop-blur-md shadow-sm border-b border-[#e8ddd2]"
@@ -121,7 +117,6 @@ export function Navbar({ cart, isLoggedIn }: NavbarProps) {
     const logoType: "dark" | "light" =
         scrolled || !isHero ? "dark" : "light";
 
-    // Announcement bar height offset
     const announcementH = announcementVisible ? "top-8" : "top-0";
 
     return (
@@ -209,6 +204,16 @@ export function Navbar({ cart, isLoggedIn }: NavbarProps) {
         .hamburger.open span:nth-child(3) {
           transform: translateY(-5.5px) rotate(-45deg);
         }
+
+        /* Cart badge pulse */
+        @keyframes badgePop {
+          0% { transform: scale(0.6); opacity: 0; }
+          70% { transform: scale(1.2); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .cart-badge {
+          animation: badgePop 0.3s ease forwards;
+        }
       `}</style>
 
             {/* Announcement bar */}
@@ -238,14 +243,14 @@ export function Navbar({ cart, isLoggedIn }: NavbarProps) {
                         {/* ── Logo — centered on mobile, left on desktop ── */}
                         <Link
                             to="/"
-                            className="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0 lg:mr-8 flex-shrink-0"
+                            className="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0 lg:mr-6 flex-shrink-0"
                             aria-label="Mayra by Gungun — Home"
                         >
                             <NavLogo type={logoType} />
                         </Link>
 
-                        {/* ── Desktop Nav Links ── */}
-                        <nav className="hidden lg:flex items-center gap-5 xl:gap-7 flex-1">
+                        {/* ── Desktop Nav Links — CENTERED ── */}
+                        <nav className="hidden lg:flex items-center justify-center gap-4 xl:gap-6 flex-1">
                             {NAV_ITEMS.map((item) => (
                                 <div key={item.label} className="nav-item relative group">
                                     <Link
@@ -303,7 +308,7 @@ export function Navbar({ cart, isLoggedIn }: NavbarProps) {
                                 )}
                             </button>
 
-                            {/* Wishlist — hidden on smallest screens */}
+                            {/* Wishlist */}
                             <Link
                                 to="/account/wishlist"
                                 className="w-9 h-9 hidden sm:flex items-center justify-center hover:text-[#b89a6a] transition-colors"
@@ -339,7 +344,7 @@ export function Navbar({ cart, isLoggedIn }: NavbarProps) {
                                 </Await>
                             </Suspense>
 
-                            {/* Cart */}
+                            {/* ── FIXED CART BUTTON ── */}
                             <CartButton cart={cart} textColor={textColor} />
                         </div>
                     </div>
@@ -387,24 +392,16 @@ export function Navbar({ cart, isLoggedIn }: NavbarProps) {
                 announcementVisible={announcementVisible}
             />
 
-            {/* Spacer when not on hero (accounts for announcement bar + nav height) */}
+            {/* Spacer */}
             {!isHero && (
                 <div
-                    style={{
-                        height: announcementVisible
-                            ? "calc(2rem + 56px)"
-                            : "56px",
-                    }}
+                    style={{ height: announcementVisible ? "calc(2rem + 56px)" : "56px" }}
                     className="sm:hidden"
                 />
             )}
             {!isHero && (
                 <div
-                    style={{
-                        height: announcementVisible
-                            ? "calc(2rem + 68px)"
-                            : "68px",
-                    }}
+                    style={{ height: announcementVisible ? "calc(2rem + 68px)" : "68px" }}
                     className="hidden sm:block"
                 />
             )}
@@ -413,7 +410,7 @@ export function Navbar({ cart, isLoggedIn }: NavbarProps) {
 }
 
 // ─────────────────────────────────────────
-// Logo Component — avoids duplication bug
+// Logo Component
 // ─────────────────────────────────────────
 function NavLogo({ type }: { type: "dark" | "light" }) {
     const [imgError, setImgError] = useState(false);
@@ -453,10 +450,18 @@ function AnnouncementBar({ onHide }: { onHide: () => void }) {
         "✦  Subscribe & Get 15% Off Your First Order  ✦",
     ];
     const [idx, setIdx] = useState(0);
+    const [fade, setFade] = useState(true);
     const [visible, setVisible] = useState(true);
 
     useEffect(() => {
-        const t = setInterval(() => setIdx((i) => (i + 1) % messages.length), 4000);
+        const t = setInterval(() => {
+            // fade out → change → fade in
+            setFade(false);
+            setTimeout(() => {
+                setIdx((i) => (i + 1) % messages.length);
+                setFade(true);
+            }, 300);
+        }, 4000);
         return () => clearInterval(t);
     }, []);
 
@@ -468,26 +473,44 @@ function AnnouncementBar({ onHide }: { onHide: () => void }) {
     };
 
     return (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-[#1a1410] text-[#d4b896] text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] uppercase flex items-center justify-center h-8 font-jost px-8">
-            <span className="transition-all duration-500 truncate text-center">
-                {messages[idx]}
-            </span>
-            <button
-                onClick={handleHide}
-                className="absolute right-3 sm:right-4 text-[#d4b896]/60 hover:text-[#d4b896] transition-colors p-1"
-                aria-label="Close announcement"
-            >
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-                    <path d="M1 1l8 8M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-            </button>
-        </div>
+        <>
+            <style>{`
+        @keyframes slideMsg {
+          from { opacity: 0; transform: translateY(4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .announcement-msg {
+          transition: opacity 0.3s ease;
+        }
+        .announcement-msg.visible { opacity: 1; }
+        .announcement-msg.hidden  { opacity: 0; }
+      `}</style>
+            <div className="fixed top-0 left-0 right-0 z-50 bg-[#1a1410] text-[#d4b896] text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] uppercase flex items-center justify-center h-8 font-jost px-8 overflow-hidden">
+                <span className={`announcement-msg ${fade ? "visible" : "hidden"} truncate text-center pointer-events-none select-none`}>
+                    {messages[idx]}
+                </span>
+                <button
+                    onClick={handleHide}
+                    className="absolute right-3 sm:right-4 text-[#d4b896]/60 hover:text-[#d4b896] transition-colors p-1"
+                    aria-label="Close announcement"
+                >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <path d="M1 1l8 8M9 1L1 9" />
+                    </svg>
+                </button>
+            </div>
+        </>
     );
 }
 
 // ─────────────────────────────────────────
-// Cart Button
+// Cart Button — FIXED
+// Two behaviours:
+//   • If Aside is available → open cart drawer (default Hydrogen behaviour)
+//   • Fallback → navigate to /cart page
+// Badge shows item count with pop animation
 // ─────────────────────────────────────────
+
 function CartButton({
     cart,
     textColor,
@@ -495,32 +518,56 @@ function CartButton({
     cart: Promise<{ totalQuantity: number } | null>;
     textColor: string;
 }) {
-    const { open } = useAside();
-
     return (
-        <button
-            onClick={() => open("cart")}
-            className={`w-9 h-9 flex items-center justify-center relative hover:text-[#b89a6a] transition-colors ${textColor}`}
-            aria-label="Open cart"
+        <Suspense
+            fallback={
+                <Link
+                    to="/cart"
+                    className={`w-9 h-9 flex items-center justify-center relative hover:text-[#b89a6a] transition-colors ${textColor}`}
+                    aria-label="Cart"
+                >
+                    <CartIcon />
+                </Link>
+            }
         >
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
-            <Suspense fallback={null}>
-                <Await resolve={cart}>
-                    {(c) =>
-                        c?.totalQuantity ? (
-                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#b89a6a] text-[#1a1410] text-[9px] font-semibold rounded-full flex items-center justify-center leading-none">
-                                {c.totalQuantity > 9 ? "9+" : c.totalQuantity}
-                            </span>
-                        ) : null
-                    }
-                </Await>
-            </Suspense>
-        </button>
+            <Await resolve={cart}>
+                {(c) => {
+                    const count = c?.totalQuantity ?? 0;
+                    return (
+                        <Link
+                            to="/cart"
+                            className={`w-9 h-9 flex items-center justify-center relative hover:text-[#b89a6a] transition-colors ${textColor}`}
+                            aria-label={`Cart${count > 0 ? ` (${count} items)` : ""}`}
+                        >
+                            <CartIcon />
+                            {count > 0 && (
+                                <span
+                                    key={count}
+                                    className="cart-badge absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#b89a6a] text-[#1a1410] text-[9px] font-semibold rounded-full flex items-center justify-center leading-none"
+                                >
+                                    {count > 9 ? "9+" : count}
+                                </span>
+                            )}
+                        </Link>
+                    );
+                }}
+            </Await>
+        </Suspense>
     );
 }
 
+function CartIcon() {
+    return (
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+            />
+        </svg>
+    );
+}
 // ─────────────────────────────────────────
 // Account Icon SVG
 // ─────────────────────────────────────────
@@ -546,7 +593,6 @@ function MobileMenu({
 }) {
     const [openItem, setOpenItem] = useState<string | null>(null);
 
-    // Reset accordion when drawer closes
     useEffect(() => {
         if (!open) setOpenItem(null);
     }, [open]);
@@ -557,18 +603,16 @@ function MobileMenu({
         <>
             {/* Backdrop */}
             <div
-                className={`fixed inset-0 z-40 bg-[#0d0b09]/60 transition-opacity duration-300 ${
-                    open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-                }`}
+                className={`fixed inset-0 z-40 bg-[#0d0b09]/60 transition-opacity duration-300 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+                    }`}
                 onClick={onClose}
                 aria-hidden="true"
             />
 
             {/* Drawer */}
             <aside
-                className={`fixed ${drawerTop} left-0 bottom-0 z-50 w-[280px] sm:w-[320px] bg-white font-jost flex flex-col transition-transform duration-350 ease-out ${
-                    open ? "translate-x-0" : "-translate-x-full"
-                }`}
+                className={`fixed ${drawerTop} left-0 bottom-0 z-50 w-[280px] sm:w-[320px] bg-white font-jost flex flex-col transition-transform duration-350 ease-out ${open ? "translate-x-0" : "-translate-x-full"
+                    }`}
                 role="dialog"
                 aria-modal="true"
                 aria-label="Navigation menu"
@@ -605,9 +649,8 @@ function MobileMenu({
                                     >
                                         <span>{item.label}</span>
                                         <svg
-                                            className={`w-3 h-3 transition-transform duration-300 flex-shrink-0 ${
-                                                openItem === item.label ? "rotate-180" : ""
-                                            }`}
+                                            className={`w-3 h-3 transition-transform duration-300 flex-shrink-0 ${openItem === item.label ? "rotate-180" : ""
+                                                }`}
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 10 6"
@@ -616,9 +659,8 @@ function MobileMenu({
                                         </svg>
                                     </button>
                                     <div
-                                        className={`mobile-accordion-content ${
-                                            openItem === item.label ? "open" : ""
-                                        }`}
+                                        className={`mobile-accordion-content ${openItem === item.label ? "open" : ""
+                                            }`}
                                     >
                                         <div className="mobile-accordion-inner bg-[#faf6f0]">
                                             {item.dropdown.map((sub) => (
@@ -694,4 +736,4 @@ function MobileMenu({
             </aside>
         </>
     );
-}   
+}

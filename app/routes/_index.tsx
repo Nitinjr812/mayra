@@ -3,9 +3,6 @@ import type { Route } from "./+types/_index";
 import { Image, Money } from "@shopify/hydrogen";
 import { useEffect, useRef, useState } from "react";
 
-// ─────────────────────────────────────────
-// Meta
-// ─────────────────────────────────────────
 export const meta: Route.MetaFunction = () => [
   { title: "Mayra by Gungun | Handcrafted Indian Fine Jewellery" },
   {
@@ -57,6 +54,11 @@ export default function Homepage() {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-8px); }
         }
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+
         .font-cormorant { font-family: 'Cormorant Garamond', serif; }
         .font-jost { font-family: 'Jost', sans-serif; }
         .hero-content { animation: fadeUp 1.2s ease forwards; }
@@ -72,7 +74,6 @@ export default function Homepage() {
         .trust-badge { transition: transform 0.3s ease; }
         .trust-badge:hover { transform: translateY(-4px); }
 
-        /* Jewellery placeholder shimmer */
         .img-placeholder {
           background: linear-gradient(135deg, #e8ddd2 0%, #f5efe8 40%, #e8ddd2 100%);
           position: relative;
@@ -85,15 +86,10 @@ export default function Homepage() {
           background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
           animation: shimmer 2s ease-in-out infinite;
         }
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
       `}</style>
 
       <main className="min-h-screen bg-[#faf6f0] font-jost text-[#3d322a]">
         <HeroSection />
-        <TrustBadges />
         <MarqueeBar />
         <CategoryGrid collections={collections} />
         <FeaturesSection />
@@ -103,6 +99,11 @@ export default function Homepage() {
         <BlogSection articles={articles} />
         <InstagramSection />
         <NewsletterSection />
+        {/* 
+          FooterSection yahan import karke use karo:
+          import { FooterSection } from "~/components/footer";
+          <FooterSection />
+        */}
         <FooterSection />
       </main>
     </>
@@ -110,20 +111,12 @@ export default function Homepage() {
 }
 
 // ─────────────────────────────────────────
-// Jewellery Placeholder SVG (inline, no external request)
+// Jewellery Placeholder
 // ─────────────────────────────────────────
 function JewelleryPlaceholder({ label = "" }: { label?: string }) {
   return (
     <div className="w-full h-full img-placeholder flex flex-col items-center justify-center gap-3">
-      {/* SVG jewellery icon */}
-      <svg
-        width="48"
-        height="48"
-        viewBox="0 0 48 48"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="opacity-40"
-      >
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" className="opacity-40">
         <circle cx="24" cy="24" r="10" stroke="#b89a6a" strokeWidth="1.5" />
         <circle cx="24" cy="24" r="5" stroke="#b89a6a" strokeWidth="1" />
         <path d="M24 4 L24 14" stroke="#b89a6a" strokeWidth="1.5" strokeLinecap="round" />
@@ -146,36 +139,50 @@ function JewelleryPlaceholder({ label = "" }: { label?: string }) {
 
 // ─────────────────────────────────────────
 // HERO
+// Key fixes:
+// 1. Video — local path use kiya CSP bypass ke liye
+//    File rakh: /public/assets/Untitled design.mp4
+// 2. Video sirf client-side pe render hogi (useEffect)
+// 3. HeroLogoImage mein mounted flag lagaya
 // ─────────────────────────────────────────
 function HeroSection() {
+  const [videoMounted, setVideoMounted] = useState(false);
+
+  useEffect(() => {
+    setVideoMounted(true);
+  }, []);
+
   return (
     <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden bg-[#0d0b09]">
-      <video
-        className="absolute inset-0 w-full h-full object-cover opacity-50"
-        autoPlay
-        loop
-        muted
-        playsInline
-        poster="https://mayrabygungun.com/public/assets/img/website text.png"
-      >
-        <source
-          src="https://mayrabygungun.com/public/webtheme/Untitled design.mp4"
-          type="video/mp4"
-        />
-      </video>
+
+
+      {videoMounted && (
+        <video
+          className="absolute inset-0 w-full h-full object-cover opacity-50"
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="https://mayrabygungun.com/public/assets/img/website text.png"
+          preload="auto"
+        >
+          {/* Primary: local file (CSP safe) */}
+          <source src="/assets/Untitled%20design.mp4" type="video/mp4" />
+          {/* Fallback: agar local nahi mila */}
+          <source
+            src="https://mayrabygungun.com/public/webtheme/Untitled%20design.mp4"
+            type="video/mp4"
+          />
+        </video>
+      )}
 
       {/* Depth overlays */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0d0b09]/20 via-[#0d0b09]/30 to-[#0d0b09]/80" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#0d0b09]/40 via-transparent to-[#0d0b09]/40" />
 
-      {/* ── Social links — fixed to RIGHT side, vertically centered ── */}
-      {/* Positioned so they sit in the middle-right of the hero,
-          safely below the navbar (top-8 announcement + ~68px nav = ~100px total).
-          We use top-1/2 -translate-y-1/2 with a generous mt to clear the nav. */}
+      {/* Social links — right side */}
       <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-4 z-20">
-        {/* Vertical line above */}
         <div className="w-px h-12 bg-[#b89a6a]/30" />
-
         <a
           href="https://www.instagram.com/mayrabygungun/"
           target="_blank"
@@ -187,7 +194,6 @@ function HeroSection() {
             <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
           </svg>
         </a>
-
         <a
           href="https://wa.link/0cknis"
           target="_blank"
@@ -199,11 +205,7 @@ function HeroSection() {
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
           </svg>
         </a>
-
-        {/* Vertical line below */}
         <div className="w-px h-12 bg-[#b89a6a]/30" />
-
-        {/* Rotated label */}
         <span
           className="text-[#b89a6a]/50 text-[8px] tracking-[0.3em] uppercase"
           style={{ writingMode: "vertical-rl", letterSpacing: "0.25em" }}
@@ -242,57 +244,43 @@ function HeroSection() {
   );
 }
 
-// Logo with clean React fallback (no DOM manipulation)
+// ─────────────────────────────────────────
+// Hero Logo — mounted flag se hydration fix
+// ─────────────────────────────────────────
 function HeroLogoImage() {
+  const [mounted, setMounted] = useState(false);
   const [error, setError] = useState(false);
-  if (error) {
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Server render + first client render: always show img (no mismatch)
+  if (!mounted || !error) {
     return (
-      <h1 className="font-cormorant text-[clamp(3rem,8vw,6rem)] font-light text-[#faf6f0] leading-[1.05]">
-        Mayra by <em className="italic text-[#d4b896]">Gungun</em>
-      </h1>
+      <img
+        src="https://mayrabygungun.com/public/assets/img/website text.png"
+        alt="Mayra by Gungun"
+        className="max-w-[320px] sm:max-w-[420px] md:max-w-[520px] mx-auto"
+        onError={() => {
+          if (mounted) setError(true);
+        }}
+        suppressHydrationWarning
+      />
     );
   }
+
   return (
-    <img
-      src="https://mayrabygungun.com/public/assets/img/website text.png"
-      alt="Mayra by Gungun"
-      className="max-w-[320px] sm:max-w-[420px] md:max-w-[520px] mx-auto"
-      onError={() => setError(true)}
-    />
+    <h1 className="font-cormorant text-[clamp(3rem,8vw,6rem)] font-light text-[#faf6f0] leading-[1.05]">
+      Mayra by <em className="italic text-[#d4b896]">Gungun</em>
+    </h1>
   );
 }
 
 // ─────────────────────────────────────────
 // TRUST BADGES
 // ─────────────────────────────────────────
-function TrustBadges() {
-  const badges = [
-    { icon: "🚚", title: "Free Standard Delivery", sub: "On orders above ₹999" },
-    { icon: "🔒", title: "100% Secure Payments", sub: "Safe & encrypted checkout" },
-    { icon: "💬", title: "Customer Support", sub: "Mon–Sat, 10am–7pm" },
-    { icon: "↩️", title: "Free & Easy Returns", sub: "7-day hassle-free returns" },
-  ];
 
-  return (
-    <section className="bg-[#faf6f0] border-y border-[#e8ddd2]">
-      <div className="grid grid-cols-2 md:grid-cols-4 max-w-6xl mx-auto">
-        {badges.map((b, i) => (
-          <div
-            key={i}
-            className={`trust-badge flex flex-col items-center text-center py-7 px-4 ${i < 3 ? "border-r border-[#e8ddd2]" : ""
-              } ${i >= 2 ? "border-t border-[#e8ddd2] md:border-t-0" : ""}`}
-          >
-            <span className="text-2xl mb-3">{b.icon}</span>
-            <h4 className="text-[10px] tracking-[0.2em] uppercase font-medium text-[#3d322a] mb-1">
-              {b.title}
-            </h4>
-            <p className="text-[11px] text-[#8a7a6e]">{b.sub}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 // ─────────────────────────────────────────
 // MARQUEE
@@ -375,9 +363,7 @@ function CategoryGrid({ collections }: { collections: CollectionNode[] }) {
   return (
     <section className="bg-[#faf6f0] py-20 px-4 lg:px-10">
       <div className="text-center mb-14">
-        <p className="text-[#b89a6a] text-[10px] tracking-[0.4em] uppercase mb-3 font-jost">
-          Explore
-        </p>
+        <p className="text-[#b89a6a] text-[10px] tracking-[0.4em] uppercase mb-3 font-jost">Explore</p>
         <h2 className="font-cormorant text-4xl lg:text-5xl font-light text-[#3d322a]">
           Shop by <em className="italic text-[#b89a6a]">Category</em>
         </h2>
@@ -387,7 +373,6 @@ function CategoryGrid({ collections }: { collections: CollectionNode[] }) {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {displayCollections.map((col, index) => {
             const imgSrc = col.image?.url || getCategoryImg(col.handle);
-
             return (
               <Link
                 key={col.id}
@@ -404,7 +389,6 @@ function CategoryGrid({ collections }: { collections: CollectionNode[] }) {
                 ) : (
                   <JewelleryPlaceholder label={col.title} />
                 )}
-                {/* Gradient overlay always visible at bottom */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0d0b09]/75 via-[#0d0b09]/15 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <h3 className="font-cormorant text-xl font-light text-white leading-tight">
@@ -434,23 +418,30 @@ function CategoryGrid({ collections }: { collections: CollectionNode[] }) {
 
 // ─────────────────────────────────────────
 // FEATURES
+// Fix: mounted flag se imgError hydration safe
 // ─────────────────────────────────────────
 function FeaturesSection() {
+  const [mounted, setMounted] = useState(false);
   const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const showFallback = mounted && imgError;
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-2">
-      {/* Image */}
       <div className="relative min-h-[380px] lg:min-h-[560px]">
-        {!imgError ? (
+        {!showFallback ? (
           <img
             src="https://mayrabygungun.com/public/webtheme/assets/wp-content/uploads/2024/08/Main-home-rev-img-02.jpg"
             alt="Fine Jewellery craftsmanship"
             className="absolute inset-0 w-full h-full object-cover"
-            onError={() => setImgError(true)}
+            onError={() => { if (mounted) setImgError(true); }}
+            suppressHydrationWarning
           />
         ) : (
-          // Fallback: elegant dark gradient with decorative element
           <div className="absolute inset-0 bg-gradient-to-br from-[#1a1410] via-[#2d2218] to-[#3d322a] flex items-center justify-center">
             <div className="text-center">
               <svg width="80" height="80" viewBox="0 0 80 80" fill="none" className="mx-auto mb-4 opacity-30">
@@ -469,15 +460,11 @@ function FeaturesSection() {
         <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#faf6f0]/5" />
       </div>
 
-      {/* Text */}
       <div className="bg-[#faf6f0] px-8 sm:px-10 lg:px-16 py-16 lg:py-20 flex flex-col justify-center">
-        <p className="text-[#b89a6a] text-[10px] tracking-[0.4em] uppercase mb-4 font-jost">
-          Why Mayra
-        </p>
+        <p className="text-[#b89a6a] text-[10px] tracking-[0.4em] uppercase mb-4 font-jost">Why Mayra</p>
         <h2 className="font-cormorant text-4xl lg:text-5xl font-light leading-tight text-[#3d322a] mb-2">
           <em className="italic text-[#b89a6a]">Elegance</em>
-          <br />
-          Expressed
+          <br />Expressed
         </h2>
         <p className="text-sm text-[#8a7a6e] mb-10 leading-relaxed">
           Classic and Contemporary Styles, crafted for the modern Indian woman.
@@ -485,30 +472,16 @@ function FeaturesSection() {
 
         <div className="space-y-8">
           {[
-            {
-              num: "01",
-              title: "Artisan Crafted",
-              desc: "Each piece handmade by master artisans from Jaipur with generations of expertise.",
-            },
-            {
-              num: "02",
-              title: "Heritage Designs",
-              desc: "Rooted in traditional Kundan, Meena & Polki styles, reimagined for today.",
-            },
-            {
-              num: "03",
-              title: "Certified Quality",
-              desc: "Premium silver and gemstones sourced and certified for lasting brilliance.",
-            },
+            { num: "01", title: "Artisan Crafted", desc: "Each piece handmade by master artisans from Jaipur with generations of expertise." },
+            { num: "02", title: "Heritage Designs", desc: "Rooted in traditional Kundan, Meena & Polki styles, reimagined for today." },
+            { num: "03", title: "Certified Quality", desc: "Premium silver and gemstones sourced and certified for lasting brilliance." },
           ].map((f) => (
             <div key={f.num} className="flex gap-6 items-start">
               <span className="font-cormorant text-4xl text-[#b89a6a] font-light leading-none flex-shrink-0">
                 {f.num}
               </span>
               <div>
-                <h4 className="text-[10px] tracking-[0.2em] uppercase font-medium mb-1 text-[#3d322a]">
-                  {f.title}
-                </h4>
+                <h4 className="text-[10px] tracking-[0.2em] uppercase font-medium mb-1 text-[#3d322a]">{f.title}</h4>
                 <p className="text-sm text-[#8a7a6e] leading-relaxed">{f.desc}</p>
               </div>
             </div>
@@ -536,10 +509,7 @@ type ProductNode = {
   title: string;
   handle: string;
   priceRange: {
-    minVariantPrice: {
-      amount: string;
-      currencyCode: string;
-    };
+    minVariantPrice: { amount: string; currencyCode: string };
   };
   featuredImage?: {
     url: string;
@@ -553,9 +523,7 @@ function FeaturedProducts({ products }: { products: ProductNode[] }) {
   return (
     <section className="bg-white py-20 px-4 lg:px-10">
       <div className="text-center mb-14">
-        <p className="text-[#b89a6a] text-[10px] tracking-[0.4em] uppercase mb-3">
-          New Arrivals
-        </p>
+        <p className="text-[#b89a6a] text-[10px] tracking-[0.4em] uppercase mb-3">New Arrivals</p>
         <h2 className="font-cormorant text-4xl lg:text-5xl font-light text-[#3d322a]">
           Featured <em className="italic text-[#b89a6a]">Pieces</em>
         </h2>
@@ -563,15 +531,8 @@ function FeaturedProducts({ products }: { products: ProductNode[] }) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5 max-w-6xl mx-auto">
         {products.slice(0, 8).map((product) => (
-          <Link
-            key={product.id}
-            to={`/products/${product.handle}`}
-            className="product-hover group"
-          >
-            <div
-              className="relative overflow-hidden mb-3 rounded-sm"
-              style={{ aspectRatio: "3/4" }}
-            >
+          <Link key={product.id} to={`/products/${product.handle}`} className="product-hover group">
+            <div className="relative overflow-hidden mb-3 rounded-sm" style={{ aspectRatio: "3/4" }}>
               {product.featuredImage ? (
                 <Image
                   data={product.featuredImage}
@@ -581,14 +542,12 @@ function FeaturedProducts({ products }: { products: ProductNode[] }) {
               ) : (
                 <JewelleryPlaceholder label="New Arrival" />
               )}
-              {/* Quick view */}
               <div
                 className="quick-view absolute bottom-0 left-0 right-0 bg-[#0d0b09] text-[#d4b896] text-[9px] tracking-[0.25em] uppercase py-3 text-center"
                 style={{ transform: "translateY(100%)", transition: "transform 0.3s ease" }}
               >
                 Quick View
               </div>
-              {/* Wishlist */}
               <button
                 className="absolute top-3 right-3 w-8 h-8 bg-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-[#b89a6a] hover:text-white rounded-sm"
                 aria-label="Add to wishlist"
@@ -623,21 +582,25 @@ function FeaturedProducts({ products }: { products: ProductNode[] }) {
 
 // ─────────────────────────────────────────
 // ABOUT SECTION
+// Fix: mounted flag
 // ─────────────────────────────────────────
 function AboutSection() {
+  const [mounted, setMounted] = useState(false);
   const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const showFallback = mounted && imgError;
 
   return (
     <section className="bg-[#faf6f0] grid grid-cols-1 lg:grid-cols-2">
-      {/* Text */}
       <div className="px-8 sm:px-10 lg:px-16 py-16 lg:py-20 flex flex-col justify-center">
-        <p className="text-[#b89a6a] text-[10px] tracking-[0.4em] uppercase mb-4">
-          Our Story
-        </p>
+        <p className="text-[#b89a6a] text-[10px] tracking-[0.4em] uppercase mb-4">Our Story</p>
         <h2 className="font-cormorant text-4xl lg:text-5xl font-light leading-tight text-[#3d322a] mb-6">
           About <em className="italic text-[#b89a6a]">Mayra</em>
-          <br />
-          By Gungun
+          <br />By Gungun
         </h2>
         <p className="text-sm text-[#8a7a6e] leading-relaxed mb-4">
           At Mayra by Gungun, we believe jewelry is more than just an
@@ -659,14 +622,14 @@ function AboutSection() {
         </Link>
       </div>
 
-      {/* Image */}
       <div className="relative min-h-[340px] lg:min-h-auto">
-        {!imgError ? (
+        {!showFallback ? (
           <img
             src="https://mayrabygungun.com/public/assets/img/857x300.png"
             alt="About Mayra by Gungun"
             className="absolute inset-0 w-full h-full object-cover"
-            onError={() => setImgError(true)}
+            onError={() => { if (mounted) setImgError(true); }}
+            suppressHydrationWarning
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[#e8ddd2] to-[#d4c4b0] flex items-center justify-center">
@@ -688,35 +651,45 @@ function AboutSection() {
 
 // ─────────────────────────────────────────
 // MID VIDEO SECTION
+// Fix: local video path + client-only render
+// Path: /public/assets/12557744_1920_1080_24fps.mp4
 // ─────────────────────────────────────────
 function MidVideoSection() {
+  const [videoMounted, setVideoMounted] = useState(false);
+
+  useEffect(() => {
+    setVideoMounted(true);
+  }, []);
+
   return (
     <section className="relative h-[460px] md:h-[560px] flex items-center justify-center overflow-hidden bg-[#0d0b09]">
-      <video
-        className="absolute inset-0 w-full h-full object-cover opacity-40"
-        autoPlay
-        loop
-        muted
-        playsInline
-      >
-        <source
-          src="https://mayrabygungun.com/public/webtheme/12557744_1920_1080_24fps.mp4"
-          type="video/mp4"
-        />
-      </video>
+      {videoMounted && (
+        <video
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+        >
+          {/* Local file preferred — add to /public/assets/ folder */}
+          <source src="/assets/12557744_1920_1080_24fps.mp4" type="video/mp4" />
+          {/* Fallback */}
+          <source
+            src="https://mayrabygungun.com/public/webtheme/12557744_1920_1080_24fps.mp4"
+            type="video/mp4"
+          />
+        </video>
+      )}
       <div className="absolute inset-0 bg-[#0d0b09]/50" />
 
       <div className="relative z-10 text-center px-6 max-w-2xl mx-auto">
-        <p className="text-[#d4b896] text-[10px] tracking-[0.4em] uppercase mb-6">
-          The Collection
-        </p>
+        <p className="text-[#d4b896] text-[10px] tracking-[0.4em] uppercase mb-6">The Collection</p>
         <h2 className="font-cormorant text-4xl md:text-5xl font-light text-white leading-tight mb-4">
           Exquisite jewelry designed to{" "}
           <em className="italic text-[#d4b896]">elevate</em> your style
         </h2>
-        <p className="text-sm text-white/60 mb-10">
-          Showcase your unique elegance with every piece.
-        </p>
+        <p className="text-sm text-white/60 mb-10">Showcase your unique elegance with every piece.</p>
         <Link
           to="/collections/all"
           className="inline-block border border-[#b89a6a] text-[#d4b896] px-10 py-4 text-[10px] tracking-[0.3em] uppercase hover:bg-[#b89a6a] hover:text-[#0d0b09] transition-all duration-300"
@@ -789,20 +762,25 @@ function BlogSection({ articles }: { articles: ArticleNode[] }) {
 }
 
 function BlogCard({ article }: { article: any }) {
+  const [mounted, setMounted] = useState(false);
   const [imgError, setImgError] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const showFallback = mounted && imgError;
+
   return (
-    <Link
-      to={`/blogs/${article.blog?.handle || "news"}/${article.handle}`}
-      className="group"
-    >
+    <Link to={`/blogs/${article.blog?.handle || "news"}/${article.handle}`} className="group">
       <div className="relative overflow-hidden mb-5 rounded-sm" style={{ aspectRatio: "4/3" }}>
-        {article.image?.url && !imgError ? (
+        {article.image?.url && !showFallback ? (
           <img
             src={article.image.url}
             alt={article.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            onError={() => setImgError(true)}
+            onError={() => { if (mounted) setImgError(true); }}
+            suppressHydrationWarning
           />
         ) : (
           <JewelleryPlaceholder label="Journal" />
@@ -827,6 +805,7 @@ function BlogCard({ article }: { article: any }) {
 
 // ─────────────────────────────────────────
 // INSTAGRAM SECTION
+// Fix: InstaThumb mein mounted flag
 // ─────────────────────────────────────────
 function InstagramSection() {
   const tiles = [
@@ -863,7 +842,14 @@ function InstagramSection() {
 }
 
 function InstaThumb({ src, index }: { src: string; index: number }) {
+  const [mounted, setMounted] = useState(false);
   const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const showFallback = mounted && imgError;
 
   return (
     <a
@@ -873,12 +859,13 @@ function InstaThumb({ src, index }: { src: string; index: number }) {
       className="group relative overflow-hidden block rounded-sm"
       style={{ aspectRatio: "1" }}
     >
-      {!imgError ? (
+      {!showFallback ? (
         <img
           src={src}
           alt={`Instagram post ${index + 1}`}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          onError={() => setImgError(true)}
+          onError={() => { if (mounted) setImgError(true); }}
+          suppressHydrationWarning
         />
       ) : (
         <div className="w-full h-full img-placeholder" />
@@ -886,10 +873,7 @@ function InstaThumb({ src, index }: { src: string; index: number }) {
       <div className="absolute inset-0 bg-[#b89a6a]/0 group-hover:bg-[#b89a6a]/35 transition-colors duration-300 flex items-center justify-center">
         <svg
           className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-md"
-          width="22"
-          height="22"
-          fill="currentColor"
-          viewBox="0 0 24 24"
+          width="22" height="22" fill="currentColor" viewBox="0 0 24 24"
         >
           <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
         </svg>
@@ -920,8 +904,7 @@ function NewsletterSection() {
         <p className="text-[#1a1410]/60 text-[10px] tracking-[0.4em] uppercase mb-4">Inner Circle</p>
         <h2 className="font-cormorant text-3xl sm:text-4xl lg:text-5xl font-light text-[#1a1410] mb-2">
           Every Piece Tells a Story,
-          <br />
-          Let Yours <em className="italic">Shine Through</em>
+          <br />Let Yours <em className="italic">Shine Through</em>
         </h2>
         <p className="text-xs tracking-wide text-[#1a1410]/70 mb-8">
           Subscribe to our Newsletter and get 15% off your first order.
@@ -954,53 +937,47 @@ function NewsletterSection() {
   );
 }
 
-// ─────────────────────────────────────────
-// FOOTER
-// ─────────────────────────────────────────
 function FooterSection() {
+  const [mounted, setMounted] = useState(false);
   const [logoError, setLogoError] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <footer className="bg-[#1a1410] text-[#faf6f0]/70">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 py-14 lg:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
+
         {/* Brand */}
         <div>
           <Link to="/" className="block mb-5">
-            {!logoError ? (
+            {mounted && logoError ? (
+              <span className="font-cormorant text-2xl text-[#faf6f0] font-light block">
+                Mayra by Gungun
+              </span>
+            ) : (
               <img
                 src="https://mayrabygungun.com/public/assets/img/mayra by gungun website 2.png"
                 alt="Mayra by Gungun"
                 className="h-14 object-contain"
-                onError={() => setLogoError(true)}
+                onError={() => { if (mounted) setLogoError(true); }}
+                suppressHydrationWarning
               />
-            ) : (
-              <span className="font-cormorant text-2xl text-[#faf6f0] font-light block">
-                Mayra by Gungun
-              </span>
             )}
           </Link>
           <p className="text-sm leading-relaxed text-[#faf6f0]/50 mb-6">
             Cherish the Sparkle, Embrace the Moment. Handcrafted fine jewellery from Jaipur since 2020.
           </p>
           <div className="flex gap-3">
-            <a
-              href="https://www.instagram.com/mayrabygungun/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-9 h-9 border border-[#b89a6a]/40 flex items-center justify-center text-[#b89a6a] hover:bg-[#b89a6a] hover:text-[#1a1410] transition-all"
-              aria-label="Instagram"
-            >
+            <a href="https://www.instagram.com/mayrabygungun/" target="_blank" rel="noopener noreferrer"
+              className="w-9 h-9 border border-[#b89a6a]/40 flex items-center justify-center text-[#b89a6a] hover:bg-[#b89a6a] hover:text-[#1a1410] transition-all" aria-label="Instagram">
               <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
               </svg>
             </a>
-            <a
-              href="https://wa.link/0cknis"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-9 h-9 border border-[#b89a6a]/40 flex items-center justify-center text-[#b89a6a] hover:bg-[#b89a6a] hover:text-[#1a1410] transition-all"
-              aria-label="WhatsApp"
-            >
+            <a href="https://wa.link/0cknis" target="_blank" rel="noopener noreferrer"
+              className="w-9 h-9 border border-[#b89a6a]/40 flex items-center justify-center text-[#b89a6a] hover:bg-[#b89a6a] hover:text-[#1a1410] transition-all" aria-label="WhatsApp">
               <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
               </svg>
@@ -1020,9 +997,7 @@ function FooterSection() {
               { label: "Gallery", to: "/pages/gallery" },
             ].map((item) => (
               <li key={item.label}>
-                <Link to={item.to} className="text-sm hover:text-[#b89a6a] transition-colors">
-                  {item.label}
-                </Link>
+                <Link to={item.to} className="text-sm hover:text-[#b89a6a] transition-colors">{item.label}</Link>
               </li>
             ))}
           </ul>
@@ -1040,9 +1015,7 @@ function FooterSection() {
               { label: "Ranihaar", to: "/collections/ranihar-19e5h" },
             ].map((item) => (
               <li key={item.label}>
-                <Link to={item.to} className="text-sm hover:text-[#b89a6a] transition-colors">
-                  {item.label}
-                </Link>
+                <Link to={item.to} className="text-sm hover:text-[#b89a6a] transition-colors">{item.label}</Link>
               </li>
             ))}
           </ul>
@@ -1091,11 +1064,7 @@ function FooterSection() {
               { label: "Shipping Policy", to: "/pages/shipping-policy" },
               { label: "Refund Policy", to: "/pages/return-policy" },
             ].map((item) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                className="text-[10px] tracking-wide text-[#faf6f0]/40 hover:text-[#b89a6a] transition-colors"
-              >
+              <Link key={item.label} to={item.to} className="text-[10px] tracking-wide text-[#faf6f0]/40 hover:text-[#b89a6a] transition-colors">
                 {item.label}
               </Link>
             ))}
